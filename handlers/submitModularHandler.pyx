@@ -313,7 +313,7 @@ class handler(requestsManager.asyncRequestHandler):
 						except Exception as e:
 							m = "Error while uploading replay to S3 ({}). Saving in failed replays folder.".format(e)
 							log.error(m)
-							saveLocally(glob.conf["FAILED_REPLAYS_FOLDER"])
+							saveLocally(glob.conf["REPLAYS_FOLDER"])
 							sentry.captureMessage(m)
 						finally:
 							log.debug("Replay upload background job finished. ok = {}".format(ok))

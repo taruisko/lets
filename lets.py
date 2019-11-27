@@ -132,7 +132,6 @@ def main():
 			".data",
 			glob.conf["BEATMAPS_FOLDER"],
 			glob.conf["SCREENSHOTS_FOLDER"],
-			glob.conf["FAILED_REPLAYS_FOLDER"],
 			glob.conf["REPLAYS_FOLDER"]
 		)
 		for i in paths:
