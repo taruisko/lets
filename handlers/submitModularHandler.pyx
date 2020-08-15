@@ -16,10 +16,10 @@ import secret.achievements.utils
 from common.constants import gameModes
 from common.constants import mods
 from common.log import logUtils as log
-from common.ripple import userUtils, fokabot
+from common.ripple import userUtils
 from common.sentry import sentry
 from common.web import requestsManager
-from constants import exceptions, autoLast
+from constants import exceptions
 from constants import rankedStatuses
 from constants.exceptions import ppCalcException
 from helpers import aeshelper
@@ -362,21 +362,6 @@ class handler(requestsManager.asyncRequestHandler):
 			# Let the api know of this score
 			if s.scoreID:
 				glob.redis.publish("api:score_submission", s.scoreID)
-
-			# Auto !last
-			userAutoLast = userUtils.getAutoLast(userID, s.isRelax)
-			if userAutoLast == autoLast.MESSAGE:
-				fokabot.last(userID)
-			elif userAutoLast == autoLast.NOTIFICATION:
-				userUtils.banchoNotification(
-					userID,
-					f"Your latest score is worth\n{s.pp:.2f} pp{' (personal best!)' if s.completed == 3 else ''}"
-				)
-
-			# Update leaderboard relax mode
-			if userUtils.isRelaxLeaderboard(userID) != s.isRelax:
-				log.info("Notifying delta about relax switch")
-				glob.redis.publish("peppy:switch_relax", json.dumps({"user_id": userID, "relax": s.isRelax}))
 
 			# Re-raise pp calc exception after saving score, cake, replay etc
 			# so Sentry can track it without breaking score submission
