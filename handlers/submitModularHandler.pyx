@@ -393,7 +393,7 @@ class handler(requestsManager.asyncRequestHandler):
 			if midPPCalcException is not None:
 				raise ppCalcException(midPPCalcException)
 
-			# If there was no exception, update stats and build score submitted panel
+            # If there was no exception, update stats and build score submitted panel
 			# Get "before" stats for ranking panel (only if passed)
 			if s.passed:
 				# Get old stats and rank
@@ -531,17 +531,11 @@ class handler(requestsManager.asyncRequestHandler):
 						gameModes.getGamemodeFull(s.gameMode),
 						"relax" if s.isRelax else "classic"
 					)
-					fokaM = None
-					try:
-						fokabot.message(annmsg, "#announce-relax" if s.isRelax else "#announce")
-					except requests.Timeout as e:
-						fokaM ="FokaBot #1 timeout."
-					except requests.ConnectionError as e:
-						fokaM = "FokaBot #1 connection error."
-					finally:
-						if fokaM is not None:
-							log.error(fokaM)
-							sentry.captureMessage(fokaM)
+					requests.post(
+						"{}/api/v0/send_message".format(glob.conf["FOKABOT_API_BASE"].rstrip("/")),
+						headers={"Secret": glob.conf["FOKABOT_API_SECRET"]},
+						json={"message": annmsg, "target": "#announce-relax" if s.isRelax else "#announce"}
+					)
 
 				# Write message to client
 				self.write(output)
