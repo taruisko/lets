@@ -9,7 +9,7 @@ from common.log import logUtils as log
 from common.web import requestsManager
 from constants import exceptions
 from helpers import osuapiHelper
-from pp import ez, cicciobello, wifipiano3
+from pp import ez, cicciobello, wifipiano2
 from common.sentry import sentry
 
 MODULE_NAME = "api/pp"
