@@ -531,11 +531,8 @@ class handler(requestsManager.asyncRequestHandler):
 						gameModes.getGamemodeFull(s.gameMode),
 						"relax" if s.isRelax else "classic"
 					)
-					requests.post(
-						"{}/api/v0/send_message".format(glob.conf["FOKABOT_API_BASE"].rstrip("/")),
-						headers={"Secret": glob.conf["FOKABOT_API_SECRET"]},
-						json={"message": annmsg, "target": "#announce-relax" if s.isRelax else "#announce"}
-					)
+					params = urlencode({"k": glob.conf["BANCHO_API_KEY"], "to": "#announce", "msg": annmsg})
+					requests.get("{}/api/v1/fokabotMessage?{}".format(glob.conf["BANCHO_URL"], params))
 
 				# Write message to client
 				self.write(output)
