@@ -142,6 +142,11 @@ class handler(requestsManager.asyncRequestHandler):
 			# Get beatmap info
 			beatmapInfo = beatmap.beatmap()
 			beatmapInfo.setDataFromDB(s.fileMd5)
+			
+			# make sure not relax
+			if s.isRelax:
+				log.debug("relax nerd")
+				return
 
 			# Make sure the beatmap is submitted and updated
 			if beatmapInfo.rankedStatus in (
@@ -178,7 +183,7 @@ class handler(requestsManager.asyncRequestHandler):
 				return
 
 			# Restrict obvious cheaters
-			if s.pp >= 800 and s.gameMode == gameModes.STD and not restricted and not s.isRelax:
+			if s.pp >= 1000 and s.gameMode == gameModes.STD and not restricted and not s.isRelax:
 				userUtils.restrict(userID)
 				userUtils.appendNotes(userID, "Restricted due to too high pp gain ({}pp)".format(s.pp))
 				log.cm(
@@ -202,10 +207,10 @@ class handler(requestsManager.asyncRequestHandler):
 			# Right before submitting the score, get the personal best score object (we need it for charts)
 			if s.passed and s.oldPersonalBest > 0:
 				# We have an older personal best. Get its rank (try to get it from cache first)
-				oldPersonalBestRank = glob.personalBestCache.get(userID, s.fileMd5, relax=s.isRelax)
+				oldPersonalBestRank = glob.personalBestCache.get(userID, s.fileMd5)
 				if oldPersonalBestRank == 0:
 					# oldPersonalBestRank not found in cache, get it from db through a scoreboard object
-					oldScoreboard = scoreboard.scoreboard(username, s.gameMode, beatmapInfo, False, relax=s.isRelax)
+					oldScoreboard = scoreboard.scoreboard(username, s.gameMode, beatmapInfo, False)
 					oldScoreboard.setPersonalBestRank()
 					oldPersonalBestRank = max(oldScoreboard.personalBestRank, 0)
 				oldPersonalBest = score.score(s.oldPersonalBest, oldPersonalBestRank)
@@ -374,12 +379,12 @@ class handler(requestsManager.asyncRequestHandler):
 			if s.passed:
 				# Get old stats and rank
 				oldUserStats = glob.userStatsCache.get(userID, s.gameMode)
-				oldRank = userUtils.getGameRank(userID, s.gameMode, relax=s.isRelax)
+				oldRank = userUtils.getGameRank(userID, s.gameMode)
 
 			# Always update users stats (total/ranked score, playcount, level, acc and pp)
 			# even if not passed
 			log.debug("Updating {}'s stats...".format(username))
-			userUtils.updateStats(userID, s, relax=s.isRelax)
+			userUtils.updateStats(userID, s)
 
 			# Update personal beatmaps playcount
 			userUtils.incrementUserBeatmapPlaycount(userID, s.gameMode, beatmapInfo.beatmapID)
@@ -389,16 +394,16 @@ class handler(requestsManager.asyncRequestHandler):
 			# (only if we passed that song)
 			if s.passed:
 				# Get new stats
-				newUserStats = userUtils.getUserStats(userID, s.gameMode, relax=s.isRelax)
+				newUserStats = userUtils.getUserStats(userID, s.gameMode)
 				glob.userStatsCache.update(userID, s.gameMode, newUserStats)
 
 				# Update leaderboard (global and country) if score/pp has changed
 				if s.completed == 3 and newUserStats["pp"] != oldUserStats["pp"]:
-					leaderboardHelper.update(userID, newUserStats["pp"], s.gameMode, relax=s.isRelax)
-					leaderboardHelper.updateCountry(userID, newUserStats["pp"], s.gameMode, relax=s.isRelax)
+					leaderboardHelper.update(userID, newUserStats["pp"], s.gameMode)
+					leaderboardHelper.updateCountry(userID, newUserStats["pp"], s.gameMode)
 
 			# Update total hits
-			userUtils.updateTotalHits(score=s, relax=s.isRelax)
+			userUtils.updateTotalHits(score=s)
 			# TODO: max combo
 
 			# Update latest activity
@@ -427,7 +432,7 @@ class handler(requestsManager.asyncRequestHandler):
 				glob.redis.publish("peppy:update_cached_stats", userID)
 
 				# Get personal best after submitting the score
-				newScoreboard = scoreboard.scoreboard(username, s.gameMode, beatmapInfo, False, relax=s.isRelax)
+				newScoreboard = scoreboard.scoreboard(username, s.gameMode, beatmapInfo, False,)
 				newScoreboard.setPersonalBestRank()
 				personalBestID = newScoreboard.getPersonalBestID()
 				assert personalBestID is not None
